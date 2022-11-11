@@ -18,72 +18,70 @@
     <div id="mynetwork"></div>
     <script type="text/javascript">
       // create an array with nodes
-      var nodes = new vis.DataSet([
-        { id: 0, label: "0", group: 1 },
-        { id: 1, label: "1", group: 1 },
-        { id: 2, label: "2", group: 1 },
-        { id: 3, label: "3", group: 1 },
-        { id: 4, label: "4", group: 1 },
-        { id: 5, label: "5", group: 1 },
-        { id: 6, label: "6", group: 1 },
-      ]);
-
-      function nameEdge(i, j) {
-        if (i < j) {
-          return 7*i + j;
-        } else if (j < i) {
-          return 7*j + i;
-        } else {
-          return undefined;
-        }
+      var allNodes = [];
+      for (let i = 0; i < 7; ++i) {
+        x = 100. + 90. * Math.cos(2. * Math.PI / 7. * i);
+        y = 100. - 90. * Math.sin(2. * Math.PI / 7. * i);
+        allNodes.push({ id: i, label: 'd' + i, x: x, y: y});
       }
+      var nodes = new vis.DataSet(allNodes);
+      const nodesNB = 7;
+
+    function nameEdge(i, j) {
+      if (i < j) {
+        return nodesNB*i + j;
+      } else if (j < i) {
+        return nodesNB*j + i;
+      } else {
+        return undefined;
+      }
+    }
 
     function giveI(n) {
-      return Math.trunc(n / 7);
+      return Math.trunc(n / nodesNB);
     }
 
     function giveJ(n) {
-      return n % 7;
+      return n % nodesNB;
     }
 
-      function initBlock(a, b, c) {
-        return new Set([
-          nameEdge(a, b), nameEdge(a, c), nameEdge(b, c)
-        ])
-      }
+    function HSLToHex(h, s, l) {
+      const hDecimal = l / 100;
+      const a = (s * Math.min(hDecimal, 1 - hDecimal)) / 100;
+      const f = (n) => {
+        const k = (n + h / 30) % 12;
+        const color = hDecimal - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
 
-      function HSLToHex(h, s, l) {
-        const hDecimal = l / 100;
-        const a = (s * Math.min(hDecimal, 1 - hDecimal)) / 100;
-        const f = (n) => {
-          const k = (n + h / 30) % 12;
-          const color = hDecimal - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+        // Convert to Hex and prefix with "0" if required
+        return Math.round(255 * color)
+          .toString(16)
+          .padStart(2, "0");
+      };
+      return `#${f(0)}${f(8)}${f(4)}`;
+    }
 
-          // Convert to Hex and prefix with "0" if required
-          return Math.round(255 * color)
-            .toString(16)
-            .padStart(2, "0");
-        };
-        return `#${f(0)}${f(8)}${f(4)}`;
-      }
+    function initBlock(a, b, c) {
+      return new Set([
+        nameEdge(a, b), nameEdge(a, c), nameEdge(b, c)
+      ])
+    }
 
-
-      var blocks = [
-        initBlock(0, 1, 2),
-        initBlock(2, 3, 4),
-        initBlock(4, 5, 0),
-        initBlock(0, 6, 3),
-        initBlock(2, 6, 5),
-        initBlock(4, 6, 1),
-        initBlock(1, 3, 5)
-      ]
+    var blocks = [
+      initBlock(0, 1, 2),
+      initBlock(2, 3, 4),
+      initBlock(4, 5, 0),
+      initBlock(0, 6, 3),
+      initBlock(2, 6, 5),
+      initBlock(4, 6, 1),
+      initBlock(1, 3, 5)
+    ];
 
       // create an array with edges
       var edges = new vis.DataSet([]);
+      let i = 0;
       for (let b of blocks) {
-        //let col = '#' + Math.floor(Math.random()*16777215).toString(16);
-        let col = HSLToHex(Math.random()*360, 80, 50);
-        console.log(col);
+        ++i;
+        let col = HSLToHex(360 * i / 7, 80, 50);
         for (let e of b) {
           edges.add([
             {id: e, from: giveI(e), to: giveJ(e), color: col, smooth: false, width: 2}
