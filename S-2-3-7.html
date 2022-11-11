@@ -95,7 +95,9 @@
         nodes: nodes,
         edges: edges,
       };
-      var options = {};
+      var options = {
+        physics: false,
+      };
       var network = new vis.Network(container, data, options);
       var previousEdgeID = undefined
       network.on("selectNode", function (params) 
