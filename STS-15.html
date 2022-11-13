@@ -8,8 +8,8 @@
     ></script>
     <style type="text/css">
       #mynetwork {
-        width: 600px;
-        height: 400px;
+        width: 500px;
+        height: 200px;
         border: 0x solid lightgray;
       }
     </style>
@@ -17,18 +17,50 @@
   <body>
     <div id="mynetwork"></div>
     <script type="text/javascript">
+
+      function HSLToHex(h, s, l) {
+        const hDecimal = l / 100;
+        const a = (s * Math.min(hDecimal, 1 - hDecimal)) / 100;
+        const f = (n) => {
+          const k = (n + h / 30) % 12;
+          const color = hDecimal - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+
+          // Convert to Hex and prefix with "0" if required
+          return Math.round(255 * color)
+            .toString(16)
+            .padStart(2, "0");
+        };
+        return `#${f(0)}${f(8)}${f(4)}`;
+      }
+
       // create an array with nodes
       var allNodes = [];
       for (let i = 0; i < 7; ++i) {
+        let col = HSLToHex(360 * i / 7, 80, 80);
         x = 100. + 90. * Math.cos(2. * Math.PI / 7. * i);
         y = 100. - 90. * Math.sin(2. * Math.PI / 7. * i);
         label = 'd' + String.fromCharCode('₀'.codePointAt(0) + i + 1)
-        allNodes.push({ id: i, label: label, x: x, y: y});
+        allNodes.push({
+          id: i,
+          shape: 'circle',
+          widthConstraint: {minimum: 20, maximum: 20},
+          color: col,
+          label: label,
+          x: x,
+          y: y
+        });
       }
       for (let i = 7; i < 15; ++i) {
-        x = 350. + 90. * Math.cos(2. * Math.PI / 8. * i);
+        x = 400. + 90. * Math.cos(2. * Math.PI / 8. * i);
         y = 100. - 90. * Math.sin(2. * Math.PI / 8. * i);
-        allNodes.push({id: i, label: ' ' + (i - 7) + ' ', x: x, y: y});
+        allNodes.push({
+          id: i,
+          shape: 'circle',
+          widthConstraint: {minimum: 20, maximum: 20},
+          label: '' + (i - 7),
+          x: x,
+          y: y
+        });
       }
       var nodes = new vis.DataSet(allNodes);
       const nodesNB = 15;
@@ -49,21 +81,6 @@
 
       function giveJ(n) {
         return n % nodesNB;
-      }
-
-      function HSLToHex(h, s, l) {
-        const hDecimal = l / 100;
-        const a = (s * Math.min(hDecimal, 1 - hDecimal)) / 100;
-        const f = (n) => {
-          const k = (n + h / 30) % 12;
-          const color = hDecimal - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
-
-          // Convert to Hex and prefix with "0" if required
-          return Math.round(255 * color)
-            .toString(16)
-            .padStart(2, "0");
-        };
-        return `#${f(0)}${f(8)}${f(4)}`;
       }
 
       function initBlock(a, b, c) {
@@ -91,13 +108,13 @@
         //console.log(col);
         for (let e of b) {
           edges.add([
-            {id: e, from: giveI(e), to: giveJ(e), color: col, smooth: false, width: 2}
+            {id: e, from: giveI(e), to: giveJ(e), color: col, smooth: false, width: 3}
           ]);
         }
       }
       for (let i = 1; i <= 7; ++i) {
         let col = HSLToHex(360 * i / 7, 80, 50);
-        let gray = HSLToHex(0, 0, 60);
+        let col2 = HSLToHex(360 * i / 7, 80, 80);
         for (let b = 0; b <= 7; ++b) {
           b2 = b ^ i;
           if (b2 < b) continue;
@@ -106,9 +123,9 @@
           p2 = b2 + 7;
           blocks.push(initBlock(a, p, p2));
           edges.add([
-            {id: nameEdge(p, p2), from: p, to: p2, color: col, smooth: false, width: 2},
-            {id: nameEdge(a, p), from: a, to: p, color: gray, smooth: false, width: 1, dashes: false},
-            {id: nameEdge(a, p2), from: a, to: p2, color: gray, smooth: false, width: 1, dashes: false}
+            {id: nameEdge(p, p2), from: p, to: p2, color: col, smooth: false, width: 3},
+            {id: nameEdge(a, p), from: a, to: p, color: col2, smooth: false, width: 1, dashes: false},
+            {id: nameEdge(a, p2), from: a, to: p2, color: col2, smooth: false, width: 1, dashes: false}
           ])
         }
       }
@@ -140,7 +157,7 @@
                 if (giveI(e) < 7 && giveJ(e) >= 7) {
                   edge['width'] = 1;
                 } else {
-                  edge['width'] = 2;
+                  edge['width'] = 3;
                 }
                 edges.update(edge);
               }
