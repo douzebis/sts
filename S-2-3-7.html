@@ -17,74 +17,149 @@
   <body>
     <div id="mynetwork"></div>
     <script type="text/javascript">
+
+      function subscript(n) {
+        res = '';
+        while (n > 0) {
+          d = n % 10;
+          res = String.fromCharCode(8320 + d) + res;
+          n = Math.trunc(n / 10);
+        }
+        return res;
+      }
+
+      function paramsForNode(offset, i, x, y) {
+        return {
+          id: offset + i,
+          shape: 'circle',
+          widthConstraint: {minimum: 20, maximum: 20},
+          label: 'a' + subscript(i),
+          x: x,
+          y: y,
+        };
+      }
+
       // create an array with nodes
       var allNodes = [];
-      for (let i = 0; i < 7; ++i) {
+      for (let i = 1; i <= 7; ++i) {
         x = 100. + 90. * Math.cos(2. * Math.PI / 7. * i);
         y = 100. - 90. * Math.sin(2. * Math.PI / 7. * i);
-        allNodes.push({ id: i, label: 'a' + (i + 1), x: x, y: y});
+        allNodes.push(paramsForNode(0, i, x, y));
       }
+      let a1 = Math.PI / 6.0;
+      let x1 = 90. * Math.cos(a1);
+      let y1 = 90. * Math.sin(a1);
+      let a3 = a1 + 2 * Math.PI / 3.0;
+      let x3 = 90. * Math.cos(a3);
+      let y3 = 90. * Math.sin(a3);
+      let a5 = a3 + 2 * Math.PI / 3.0;
+      let x5 = 90. * Math.cos(a5);
+      let y5 = 90. * Math.sin(a5);
+      let x7 = 0.;
+      let y7 = 0.;
+      allNodes.push(paramsForNode(7, 1, 400 + x1,         100 + y1));
+      allNodes.push(paramsForNode(7, 2, 400 + (x1+x3)/2., 100 + (y1+y3)/2.));
+      allNodes.push(paramsForNode(7, 3, 400 + x3,         100 + y3));
+      allNodes.push(paramsForNode(7, 6, 400 + (x5+x3)/2., 100 + (y5+y3)/2.));
+      allNodes.push(paramsForNode(7, 5, 400 + x5,         100 + y5));
+      allNodes.push(paramsForNode(7, 4, 400 + (x5+x1)/2., 100 + (y5+y1)/2.));
+      allNodes.push(paramsForNode(7, 7, 400 + x7,         100 + y7));
       var nodes = new vis.DataSet(allNodes);
-      const nodesNB = 7;
 
-    function nameEdge(i, j) {
-      if (i < j) {
-        return nodesNB*i + j;
-      } else if (j < i) {
-        return nodesNB*j + i;
-      } else {
-        return undefined;
+      const nodesNB = 14;
+      function nameEdge(i, j) {
+        if (i < j) {
+          return nodesNB*i + j;
+        } else if (j < i) {
+          return nodesNB*j + i;
+        } else {
+          return undefined;
+        }
       }
-    }
 
-    function giveI(n) {
-      return Math.trunc(n / nodesNB);
-    }
+      function giveI(n) {
+        return Math.trunc(n / nodesNB);
+      }
 
-    function giveJ(n) {
-      return n % nodesNB;
-    }
+      function giveJ(n) {
+        return n % nodesNB;
+      }
 
-    function HSLToHex(h, s, l) {
-      const hDecimal = l / 100;
-      const a = (s * Math.min(hDecimal, 1 - hDecimal)) / 100;
-      const f = (n) => {
-        const k = (n + h / 30) % 12;
-        const color = hDecimal - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+      function HSLToHex(h, s, l) {
+        const hDecimal = l / 100;
+        const a = (s * Math.min(hDecimal, 1 - hDecimal)) / 100;
+        const f = (n) => {
+          const k = (n + h / 30) % 12;
+          const color = hDecimal - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
 
-        // Convert to Hex and prefix with "0" if required
-        return Math.round(255 * color)
-          .toString(16)
-          .padStart(2, "0");
-      };
-      return `#${f(0)}${f(8)}${f(4)}`;
-    }
+          // Convert to Hex and prefix with "0" if required
+          return Math.round(255 * color)
+            .toString(16)
+            .padStart(2, "0");
+        };
+        return `#${f(0)}${f(8)}${f(4)}`;
+      }
 
-    function initBlock(a, b, c) {
-      return new Set([
-        nameEdge(a, b), nameEdge(a, c), nameEdge(b, c)
-      ])
-    }
+      function initBlock(a, b, c) {
+        return new Set([
+          nameEdge(a, b), nameEdge(a, c), nameEdge(b, c)
+        ])
+      }
 
-    var blocks = [
-      initBlock(0, 1, 2),
-      initBlock(2, 3, 4),
-      initBlock(4, 5, 0),
-      initBlock(0, 6, 3),
-      initBlock(2, 6, 5),
-      initBlock(4, 6, 1),
-      initBlock(1, 3, 5)
-    ];
+//    var blocks = [
+//      initBlock(0, 1, 2),
+//      initBlock(2, 3, 4),
+//      initBlock(4, 5, 0),
+//      initBlock(0, 6, 3),
+//      initBlock(2, 6, 5),
+//      initBlock(4, 6, 1),
+//      initBlock(1, 3, 5)
+//    ];
+//
+//      // create an array with edges
+//      var edges = new vis.DataSet([]);
+//      let i = 0;
+//      for (let b of blocks) {
+//        ++i;
+//        let col = HSLToHex(360 * i / 7, 80, 50);
+//        for (let e of b) {
+//          edges.add([
+//            {id: e, from: giveI(e), to: giveJ(e), color: col, smooth: false, width: 2}
+//          ]);
+//        }
+//      }
 
-      // create an array with edges
+      var blocks = [];
       var edges = new vis.DataSet([]);
-      let i = 0;
-      for (let b of blocks) {
-        ++i;
-        let col = HSLToHex(360 * i / 7, 80, 50);
-        for (let e of b) {
+
+      // create blocks and edges
+      let b = 0;
+      for (let i = 1; i <= 7; ++i) {
+        for (let j = i + 1; j <= 7; ++j) {
+          let k = i ^ j;
+          if (k < j) continue;
+          //console.log(i, j, k)
+          ++b;
+          let col = HSLToHex(360 * b / 7, 80, 50);
+          blocks.push(new Set([
+            nameEdge(i, j),
+            nameEdge(i, k),
+            nameEdge(j, k)
+          ]));
+          blocks.push(new Set([
+            nameEdge(7+i, 7+j),
+            nameEdge(7+i, 7+k),
+            nameEdge(7+j, 7+k)
+          ]));
           edges.add([
-            {id: e, from: giveI(e), to: giveJ(e), color: col, smooth: false, width: 2}
+            {id: nameEdge(i, j), from: i, to: j, color: col, smooth: false, width: 2},
+            {id: nameEdge(i, k), from: i, to: k, color: col, smooth: false, width: 2},
+            {id: nameEdge(j, k), from: j, to: k, color: col, smooth: false, width: 2},
+          ]);
+          edges.add([
+            {id: nameEdge(7+i, 7+j), from: 7+i, to: 7+j, color: col, smooth: false, width: 2},
+            {id: nameEdge(7+i, 7+k), from: 7+i, to: 7+k, color: col, smooth: false, width: 2},
+            {id: nameEdge(7+j, 7+k), from: 7+j, to: 7+k, color: col, smooth: false, width: 2},
           ]);
         }
       }
@@ -100,10 +175,16 @@
       };
       var network = new vis.Network(container, data, options);
       var previousEdgeID = undefined
-      network.on("selectNode", function (params) 
-      {
-        network.selectNodes([]);
-      });
+      //network.on("selectNode", function (params) 
+      //{
+      //  let i = params['nodes'][0]
+      //  let edges = []
+      //  for (let j = 1; j <= 7; ++j) {
+      //    if (i != j) edges.push(nameEdge(i, j))
+      //  }
+      //  network.selectEdges(edges)
+      //  //network.selectNodes([])
+      //});
       network.on("selectEdge", function (params) 
       {
         network.selectEdges([]);
